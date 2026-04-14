@@ -1,18 +1,18 @@
 // Controller HTTP para categorías
 
-use std::sync::Arc;
+use crate::modules::categories::repository::CategoryRepository;
+use crate::modules::categories::service::CategoryService;
+use crate::modules::categories::types::{CategorySearchFilters, CreateCategoryInput};
+use crate::shared::core::{is_valid_uuid, ApiResponse};
+use crate::shared::entities::Category;
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     response::Json,
-    routing::{get, post, delete},
+    routing::{delete, get, post},
     Router,
 };
 use serde::Deserialize;
-use crate::shared::core::{ApiResponse, Result, is_valid_uuid};
-use crate::shared::entities::Category;
-use crate::modules::categories::types::{CreateCategoryInput, CategorySearchFilters};
-use crate::modules::categories::repository::CategoryRepository;
-use crate::modules::categories::service::CategoryService;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 pub struct CategoryQueryParams {
@@ -70,7 +70,7 @@ where
     if !is_valid_uuid(&id) {
         return Json(ApiResponse::error(400, "Invalid UUID".to_string()));
     }
-    
+
     let result = service.get_category_by_id(&id).await;
     Json(match result {
         Ok(category) => ApiResponse::ok(category),
@@ -88,10 +88,11 @@ where
     if !is_valid_uuid(&id) {
         return Json(ApiResponse::error(400, "Invalid UUID".to_string()));
     }
-    
+
     let result = service.delete_category(&id).await;
     Json(match result {
         Ok(_) => ApiResponse::no_content(),
         Err(e) => ApiResponse::error(404, e.to_string()),
     })
 }
+

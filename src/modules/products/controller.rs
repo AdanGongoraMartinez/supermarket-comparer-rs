@@ -1,18 +1,18 @@
 // Controller HTTP para productos
 
-use std::sync::Arc;
+use crate::modules::products::repository::ProductRepository;
+use crate::modules::products::service::ProductService;
+use crate::modules::products::types::{CreateProductInput, ProductSearchFilters};
+use crate::shared::core::{is_valid_uuid, ApiResponse};
+use crate::shared::entities::Product;
 use axum::{
-    extract::{Path, State, Query},
+    extract::{Path, Query, State},
     response::Json,
-    routing::{get, post, delete},
+    routing::{delete, get, post},
     Router,
 };
 use serde::Deserialize;
-use crate::shared::core::{ApiResponse, Result, is_valid_uuid};
-use crate::shared::entities::Product;
-use crate::modules::products::types::{CreateProductInput, ProductSearchFilters};
-use crate::modules::products::repository::ProductRepository;
-use crate::modules::products::service::ProductService;
+use std::sync::Arc;
 
 #[derive(Deserialize, Default)]
 pub struct ProductQueryParams {
@@ -57,7 +57,11 @@ where
     let filters = ProductSearchFilters {
         name: params.name.clone(),
         category_id: params.category_id.clone(),
-        active_only: params.active_only.as_ref().map(|s| s != "false").unwrap_or(true),
+        active_only: params
+            .active_only
+            .as_ref()
+            .map(|s| s != "false")
+            .unwrap_or(true),
     };
     let result = service.search_products(filters).await;
     Json(match result {
@@ -99,3 +103,4 @@ where
         Err(e) => ApiResponse::error(404, e.to_string()),
     })
 }
+
