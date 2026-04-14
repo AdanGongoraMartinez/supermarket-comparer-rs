@@ -26,8 +26,8 @@ where
     Router::new()
         .route("/categories", post(create_category))
         .route("/categories", get(list_categories))
-        .route("/categories/:id", get(get_category))
-        .route("/categories/:id", delete(delete_category))
+        .route("/categories/{id}", get(get_category))
+        .route("/categories/{id}", delete(delete_category))
         .with_state(Arc::new(service))
 }
 
@@ -95,4 +95,3 @@ where
         Err(e) => ApiResponse::error(404, e.to_string()),
     })
 }
-

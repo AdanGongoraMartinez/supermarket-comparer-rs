@@ -28,8 +28,8 @@ where
     Router::new()
         .route("/products", post(create_product))
         .route("/products", get(list_products))
-        .route("/products/:id", get(get_product))
-        .route("/products/:id", delete(delete_product))
+        .route("/products/{id}", get(get_product))
+        .route("/products/{id}", delete(delete_product))
         .with_state(Arc::new(service))
 }
 
@@ -103,4 +103,3 @@ where
         Err(e) => ApiResponse::error(404, e.to_string()),
     })
 }
-
