@@ -1,8 +1,7 @@
 // Implementación del repository de categoría usando SQLx
 
 use async_trait::async_trait;
-use std::sync::Arc;
-use crate::db::Db;
+use sqlx::PgPool;
 use crate::db::schema::CategoryRow;
 use crate::shared::core::{CategoryError, Result};
 use crate::shared::entities::Category;
@@ -10,20 +9,20 @@ use crate::modules::categories::repository::CategoryRepository;
 use crate::modules::categories::types::{CreateCategoryInput, CategorySearchFilters};
 
 pub struct CategoryRepositoryImpl {
-    db: Arc<Db>,
+    pool: PgPool,
 }
 
 impl Clone for CategoryRepositoryImpl {
     fn clone(&self) -> Self {
         Self {
-            db: Arc::clone(&self.db),
+            pool: self.pool.clone(),
         }
     }
 }
 
 impl CategoryRepositoryImpl {
-    pub fn new(db: Arc<Db>) -> Self {
-        Self { db }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 
     fn map_row_to_category(row: CategoryRow) -> Category {
@@ -42,7 +41,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
             "INSERT INTO categories (name) VALUES ($1) RETURNING id, name, created_at"
         )
         .bind(&input.name)
-        .fetch_one(self.db.pool())
+        .fetch_one(&self.pool)
         .await
         .map_err(|e| CategoryError::AlreadyExists(e.to_string()))?;
 
@@ -54,7 +53,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
             "SELECT id, name, created_at FROM categories WHERE id = $1"
         )
         .bind(id)
-        .fetch_one(self.db.pool())
+        .fetch_one(&self.pool)
         .await
         .map_err(|_| CategoryError::NotFound(id.to_string()))?;
 
@@ -66,7 +65,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
             "SELECT id, name, created_at FROM categories WHERE name = $1"
         )
         .bind(name)
-        .fetch_all(self.db.pool())
+        .fetch_all(&self.pool)
         .await
         .map_err(|e| CategoryError::NotFound(e.to_string()))?;
 
@@ -77,7 +76,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
         let query = "SELECT id, name, created_at FROM categories WHERE name ILIKE $1";
         let rows = sqlx::query_as::<_, CategoryRow>(query)
             .bind(filters.name.as_deref().map(|n| format!("%{}%", n)).unwrap_or_default())
-            .fetch_all(self.db.pool())
+            .fetch_all(&self.pool)
             .await
             .map_err(|e| CategoryError::NotFound(e.to_string()))?;
 
@@ -87,7 +86,7 @@ impl CategoryRepository for CategoryRepositoryImpl {
     async fn delete(&self, id: &str) -> Result<(), CategoryError> {
         sqlx::query("DELETE FROM categories WHERE id = $1")
             .bind(id)
-            .execute(self.db.pool())
+            .execute(&self.pool)
             .await
             .map_err(|_| CategoryError::NotFound(id.to_string()))?;
 

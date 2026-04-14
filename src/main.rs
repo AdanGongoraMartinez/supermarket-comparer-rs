@@ -2,7 +2,6 @@
 
 use axum::{routing::get, Router};
 use dotenvy::dotenv;
-use std::sync::Arc;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -29,11 +28,12 @@ async fn main() -> anyhow::Result<()> {
     println!("Connecting to database...");
     println!("{}", &database_url);
 
-    let db = Arc::new(Db::new(&database_url).await?);
+    let db = Db::new(&database_url).await?;
+    let pool = db.pool().clone();
     println!("✅ Connected to database");
 
-    let category_repo = CategoryRepositoryImpl::new(Arc::clone(&db));
-    let product_repo = ProductRepositoryImpl::new(Arc::clone(&db));
+    let category_repo = CategoryRepositoryImpl::new(pool.clone());
+    let product_repo = ProductRepositoryImpl::new(pool);
 
     let category_service = CategoryService::new(category_repo);
     let product_service = ProductService::new(product_repo);

@@ -5,7 +5,7 @@ pub mod repository_impl;
 pub mod service;
 
 #[cfg(test)]
-pub mod tests;
+pub mod test;
 pub mod types;
 
 pub use controller::category_router;

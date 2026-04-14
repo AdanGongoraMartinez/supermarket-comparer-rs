@@ -1,9 +1,8 @@
 // Implementación del repository de producto usando SQLx
 
 use async_trait::async_trait;
-use std::sync::Arc;
+use sqlx::PgPool;
 use uuid::Uuid;
-use crate::db::Db;
 use crate::db::schema::ProductRow;
 use crate::shared::core::{Result, ProductError};
 use crate::shared::entities::Product;
@@ -11,20 +10,20 @@ use crate::modules::products::repository::ProductRepository;
 use crate::modules::products::types::{CreateProductInput, ProductSearchFilters};
 
 pub struct ProductRepositoryImpl {
-    db: Arc<Db>,
+    pool: PgPool,
 }
 
 impl Clone for ProductRepositoryImpl {
     fn clone(&self) -> Self {
         Self {
-            db: Arc::clone(&self.db),
+            pool: self.pool.clone(),
         }
     }
 }
 
 impl ProductRepositoryImpl {
-    pub fn new(db: Arc<Db>) -> Self {
-        Self { db }
+    pub fn new(pool: PgPool) -> Self {
+        Self { pool }
     }
 
     fn map_row_to_product(row: ProductRow) -> Product {
@@ -56,7 +55,7 @@ impl ProductRepository for ProductRepositoryImpl {
         .bind(&input.presentation)
         .bind(&input.barcode)
         .bind(category_id)
-        .fetch_one(self.db.pool())
+        .fetch_one(&self.pool)
         .await
         .map_err(|e| ProductError::AlreadyExists(e.to_string()))?;
 
@@ -69,7 +68,7 @@ impl ProductRepository for ProductRepositoryImpl {
              FROM products WHERE id = $1"
         )
         .bind(id)
-        .fetch_one(self.db.pool())
+        .fetch_one(&self.pool)
         .await
         .map_err(|_| ProductError::NotFound(id.to_string()))?;
 
@@ -82,7 +81,7 @@ impl ProductRepository for ProductRepositoryImpl {
              FROM products WHERE name = $1"
         )
         .bind(name)
-        .fetch_all(self.db.pool())
+        .fetch_all(&self.pool)
         .await
         .map_err(|e| ProductError::NotFound(e.to_string()))?;
 
@@ -103,7 +102,7 @@ impl ProductRepository for ProductRepositoryImpl {
         .bind(filters.active_only)
         .bind(name_pattern)
         .bind(category_id)
-        .fetch_all(self.db.pool())
+        .fetch_all(&self.pool)
         .await
         .map_err(|e| ProductError::NotFound(e.to_string()))?;
 
@@ -113,7 +112,7 @@ impl ProductRepository for ProductRepositoryImpl {
     async fn deactivate(&self, id: &str) -> Result<(), ProductError> {
         sqlx::query("UPDATE products SET active = false WHERE id = $1")
             .bind(id)
-            .execute(self.db.pool())
+            .execute(&self.pool)
             .await
             .map_err(|_| ProductError::NotFound(id.to_string()))?;
 
