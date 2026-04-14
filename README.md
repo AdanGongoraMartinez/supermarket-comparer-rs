@@ -13,7 +13,7 @@ El proyecto permite gestionar productos y categorías de supermercados, facilita
 
 ## Requisitos
 
-- **Docker** y **Docker Compose** (para PostgreSQL)
+- **Docker** y **Docker Compose**
 - **Rust** (1.70+) con cargo
 
 ## Estado de Implementación
@@ -24,48 +24,59 @@ El proyecto permite gestionar productos y categorías de supermercados, facilita
 - ✅ CRUD de Productos (crear, buscar, obtener por ID, desactivar)
 - ✅ CRUD de Categorías (crear, buscar, obtener por ID, eliminar)
 - ✅ Base de datos PostgreSQL con SQLx
-- ✅ Patrón Result para manejo de errores
+- ✅ Migraciones SQLx
+- ✅ Configuración con Docker y docker-compose
+- ✅ Variables de entorno con .env
 
 ### Pendiente
 
-- ❌ Tests unitarios sobre una base de datos secundaria (PRIORITARIO)
-- ❌ Implementación de .env para manejo de variables de entorno (PRIORITARIO)
+- ❌ Tests unitarios
 - ❌ Módulo de Supermercados
 - ❌ Módulo de Precios
 - ❌ Módulo de comparación de precios
-- ❌ Migraciones automatizadas
 - ❌ Autenticación/Autorización
 
-## Instalación
+## Configuración
 
-1. **Clonar el repositorio**
+### 1. Variables de entorno
 
-2. **Configurar variables de entorno:**
+Copia `env.example` a `.env`:
 
-   ```bash
-   export DATABASE_URL="postgres://user:pass@localhost:5432/supermarket"
-   ```
+```bash
+cp env.example .env
+```
 
-3. **Iniciar PostgreSQL:**
+Contenido de `env.example`:
+```
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/app_dev
+```
 
-   ```bash
-   docker run -d --name postgres \
-     -e POSTGRES_USER=user \
-     -e POSTGRES_PASSWORD=pass \
-     -e POSTGRES_DB=supermarket \
-     -p 5432:5432 postgres:15
-   ```
+### 2. Docker
 
-4. **Compilar:**
+Iniciar PostgreSQL con Docker Compose:
 
-   ```bash
-   cargo build
-   ```
+```bash
+docker-compose up -d
+```
+
+Esto inicia:
+- **db**: PostgreSQL en puerto 5432
+- **app**: La aplicación Rust (opcional)
+
+### 3. Migraciones
+
+Las migraciones están en la carpeta `migrations/`. Se ejecutan automáticamente al iniciar la aplicación.
+
+Para crear una nueva migración:
+
+```bash
+cargo sqlx migrate add nombre_de_la_migracion
+```
 
 ## Comandos
 
 ```bash
-# Iniciar el servidor
+# Iniciar el servidor (requiere PostgreSQL)
 cargo run
 
 # Verificar compilación
@@ -196,9 +207,10 @@ src/
 ├── shared/
 │   ├── core/                  # Result, API Response, errores
 │   └── entities/              # Entidades del dominio
-└── db/
-    ├── schema.rs              # Definiciones de tablas
-    └── connection.rs         # Pool de conexiones
+├── db/
+│   ├── schema.rs              # Definiciones de tablas
+│   └── connection.rs          # Pool de conexiones
+└── migrations/                # Migraciones SQL
 ```
 
 Patrón: **Controller → Service → Repository**
@@ -206,8 +218,8 @@ Patrón: **Controller → Service → Repository**
 ## Tech Stack
 
 - **Lenguaje**: Rust
-- **Framework Web**: Axum 0.7
+- **Framework Web**: Axum 0.8
 - **ORM**: SQLx
 - **Database**: PostgreSQL (Docker)
+- **Contenedores**: Docker Compose
 - **Errores**: thiserror
-
