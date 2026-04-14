@@ -22,24 +22,3 @@ pub struct ProductRow {
     pub active: bool,
     pub created_at: DateTime<Utc>,
 }
-
-pub const CREATE_CATEGORIES_SQL: &str = r#"
-CREATE TABLE IF NOT EXISTS categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-"#;
-
-pub const CREATE_PRODUCTS_SQL: &str = r#"
-CREATE TABLE IF NOT EXISTS products (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    brand TEXT,
-    presentation TEXT,
-    barcode TEXT,
-    category_id UUID REFERENCES categories(id),
-    active BOOLEAN DEFAULT TRUE NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-"#;
