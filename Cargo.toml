@@ -3,9 +3,6 @@ name = "supermarket-comparer-rs"
 version = "0.1.0"
 edition = "2021"
 
-[features]
-default = ["runtime-tokio-rt"]
-
 [dependencies]
 axum = "0.8"
 tokio = { version = "1", features = ["full"] }
@@ -36,10 +33,8 @@ sqlx = { version = "0.8", features = [
   "uuid",
   "migrate",
 ] }
+test-containers-util = { version = "0.1", features = ["pg-sqlx"] }
 
 [lib]
 path = "src/lib.rs"
-
-[tool.sqlx]
-file = ".sqlxrc"
 

@@ -1,12 +1,16 @@
 // Módulo de productos
-pub mod types;
+pub mod controller;
 pub mod repository;
 pub mod repository_impl;
 pub mod service;
-pub mod controller;
 
-pub use types::{CreateProductInput, ProductSearchFilters};
+#[cfg(test)]
+pub mod tests;
+pub mod types;
+
+pub use controller::product_router;
 pub use repository::ProductRepository;
 pub use repository_impl::ProductRepositoryImpl;
 pub use service::ProductService;
-pub use controller::product_router;
+pub use types::{CreateProductInput, ProductSearchFilters};
+

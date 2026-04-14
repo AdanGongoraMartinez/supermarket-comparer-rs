@@ -1,12 +1,16 @@
 // Módulo de categorías
-pub mod types;
+pub mod controller;
 pub mod repository;
 pub mod repository_impl;
 pub mod service;
-pub mod controller;
 
-pub use types::{CreateCategoryInput, CategorySearchFilters};
+#[cfg(test)]
+pub mod tests;
+pub mod types;
+
+pub use controller::category_router;
 pub use repository::CategoryRepository;
 pub use repository_impl::CategoryRepositoryImpl;
 pub use service::CategoryService;
-pub use controller::category_router;
+pub use types::{CategorySearchFilters, CreateCategoryInput};
+
