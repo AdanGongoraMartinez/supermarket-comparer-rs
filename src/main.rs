@@ -1,14 +1,19 @@
 // Supermarket Comparer - Entry Point
 
+use axum::{routing::get, Router};
+use dotenvy::dotenv;
 use std::sync::Arc;
-use axum::{Router, routing::get};
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use supermarket_comparer_rs::db::Db;
-use supermarket_comparer_rs::modules::categories::{CategoryRepositoryImpl, CategoryService, category_router};
-use supermarket_comparer_rs::modules::products::{ProductRepositoryImpl, ProductService, product_router};
+use supermarket_comparer_rs::modules::categories::{
+    category_router, CategoryRepositoryImpl, CategoryService,
+};
+use supermarket_comparer_rs::modules::products::{
+    product_router, ProductRepositoryImpl, ProductService,
+};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,8 +21,13 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let database_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:postgres@localhost:5432/supermarket".to_string());
+    dotenv().expect(".env file not found");
+
+    let database_url =
+        std::env::var("DATABASE_URL").expect("DATABASE_URL no está configurada en el .env");
+
+    println!("Connecting to database...");
+    println!("{}", &database_url);
 
     let db = Arc::new(Db::new(&database_url).await?);
     println!("✅ Connected to database");
@@ -41,3 +51,4 @@ async fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
+
